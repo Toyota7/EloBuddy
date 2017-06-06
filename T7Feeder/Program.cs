@@ -31,6 +31,7 @@ namespace T7_Feeder
         private static bool BotPointReached = false;
         private static bool MidPointReached = false;
         private static bool SayNoEnemies = false;
+        private static bool FinishedBuild = false;
 
         private static readonly Vector3 OrderSpawn = new Vector3(394, 461, 171);
         private static readonly Vector3 ChaosSpawn = new Vector3(14340, 14391, 179);
@@ -205,7 +206,7 @@ namespace T7_Feeder
 
         public static void OnLoad(EventArgs args)
         {
-            Chat.Print("<font color='#0040FF'>T7</font><font color='#09FF00'> Feeder</font> : Loaded!(v1.1)");
+            Chat.Print("<font color='#0040FF'>T7</font><font color='#09FF00'> Feeder</font> : Loaded!(v1.2)");
             Chat.Print("<font color='#04B404'>By </font><font color='#FF0000'>T</font><font color='#FA5858'>o</font><font color='#FF0000'>y</font><font color='#FA5858'>o</font><font color='#FF0000'>t</font><font color='#FA5858'>a</font><font color='#0040FF'>7</font><font color='#FF0000'> <3 </font>");
             Game.OnTick += OnTick;
             DatMenu();
@@ -215,11 +216,11 @@ namespace T7_Feeder
         private static void OnTick(EventArgs args)
         {
             Checks();
-            Abilities();
-            SummonerSpells();
-            ChatOnDeath();
-            Shopping();
-            Feed();
+            if (check(menu, "ABILITIES") && !myhero.IsDead) Abilities();
+            if (check(menu, "SPELLS") && check(menu, "ACTIVE") && !myhero.IsDead) SummonerSpells();
+            if (combocheck(menu, "MSGS") != 0) ChatOnDeath();
+            if (check(menu, "AUTOBUY") && !FinishedBuild) Shopping();
+            if (check(menu, "ACTIVE") && !myhero.IsDead) Feed();
         }
 
         private static bool check(Menu menu,string sig)
@@ -241,55 +242,38 @@ namespace T7_Feeder
         {
             var ghost = myhero.Spellbook.Spells.Where(x => x.Name.Contains("Haste"));
             SpellDataInst ghosty = ghost.Any() ? ghost.First() : null;
-            if (ghosty != null)
-            {
-                Ghost = new Spell.Active(ghosty.Slot);                             
-            }                                                                             
+            if (ghosty != null) Ghost = new Spell.Active(ghosty.Slot);                                                                                                                     
 
             var heal = myhero.Spellbook.Spells.Where(x => x.Name.Contains("Heal"));
             SpellDataInst Healy = heal.Any() ? heal.First() : null;
-            if (Healy != null)
-            {
-                Heal = new Spell.Active(Healy.Slot);                               
-            }
+            if (Healy != null) Heal = new Spell.Active(Healy.Slot);                                      
 
-            if (Healy != null && Heal.IsReady() && !myhero.HasBuff("SRHomeguardSpeed") && !myhero.IsDead && 
-                check(menu, "SPELLS") && 
-                check(menu, "ACTIVE"))
-            {
-                Heal.Cast();
-            }
-
-            if (ghosty != null && Ghost.IsReady() && !myhero.HasBuff("SRHomeguardSpeed") && !myhero.IsDead &&
-                check(menu, "SPELLS") &&
-                check(menu, "ACTIVE"))
-            {
-                Ghost.Cast();
-            }
+            if (Healy != null && Heal.IsReady() && !myhero.HasBuff("SRHomeguardSpeed") && !myhero.IsDead) Heal.Cast();
+            
+            if (ghosty != null && Ghost.IsReady() && !myhero.HasBuff("SRHomeguardSpeed") && !myhero.IsDead) Ghost.Cast();            
         }
 
         private static void Shopping()
-        { //101% thrash code
-            if (!check(menu, "AUTOBUY")) return;
+        { //best spaghetti ever made
+            if (Shop.CanShop)
+            {
+                if (!Item.HasItem(ItemId.Boots_of_Speed) && !Item.HasItem(ItemId.Boots_of_Mobility) && myhero.Gold >= 300)
+                    Shop.BuyItem(ItemId.Boots_of_Speed);
 
-            if (myhero.IsInShopRange())
-            {
-                if (!Item.HasItem(ItemId.Boots_of_Speed) && !Item.HasItem(ItemId.Boots_of_Mobility))
-                {
-                    if (myhero.Gold >= 300 && Shop.CanShop) Shop.BuyItem(ItemId.Boots_of_Speed);
-                }
-                if (Item.HasItem(ItemId.Boots_of_Speed) && !Item.HasItem(ItemId.Boots_of_Mobility))
-                {
-                    if (myhero.Gold >= 600 && Shop.CanShop) Shop.BuyItem(ItemId.Boots_of_Mobility);
-                }
-                if (Item.HasItem(ItemId.Boots_of_Mobility) && !Item.HasItem(ItemId.Aether_Wisp))
-                {
-                    if (myhero.Gold >= 850 && Shop.CanShop) Shop.BuyItem(ItemId.Aether_Wisp);
-                }
-            }
-            if (Item.HasItem(ItemId.Aether_Wisp))
-            {
-                return;
+                else if (Item.HasItem(ItemId.Boots_of_Speed) && !Item.HasItem(ItemId.Boots_of_Mobility) && myhero.Gold >= 600)
+                    Shop.BuyItem(ItemId.Boots_of_Mobility);
+
+                else if (Item.HasItem(ItemId.Boots_of_Mobility) && !Item.HasItem(ItemId.Aether_Wisp) && myhero.Gold >= 850)
+                    Shop.BuyItem(ItemId.Aether_Wisp);
+
+                else if (Item.HasItem(ItemId.Aether_Wisp) && !Item.HasItem(ItemId.Serrated_Dirk) && myhero.Gold >= 1100)
+                    Shop.BuyItem(ItemId.Serrated_Dirk);
+
+                else if (Item.HasItem(ItemId.Serrated_Dirk) && !Item.HasItem(ItemId.Raptor_Cloak) && myhero.Gold >= 1200)
+                    Shop.BuyItem(ItemId.Raptor_Cloak);
+
+                else if (Item.HasItem(ItemId.Raptor_Cloak) && !Item.HasItem(ItemId.Zeal) && myhero.Gold >= 1200)
+                    FinishedBuild = Shop.BuyItem(ItemId.Zeal);
             }
         }
 
@@ -309,12 +293,9 @@ namespace T7_Feeder
         private static void ChatOnDeath()
         {
             if (myhero.IsDead && Chatted == false)
-            {
-                
+            {                
                     switch (combocheck(menu, "MSGS"))
                     {
-                        case 0:
-                            break;
                         case 1:
                             var Random1 = new Random();
                             Core.DelayAction(delegate { Chat.Say("/all " + Messages[Random1.Next(0, 23)]); }, slider(menu, "CHATDELAY") * 1000);
@@ -337,23 +318,20 @@ namespace T7_Feeder
 
         private static void Abilities()
         {
-            if (!check(menu, "ABILITIES")) return;
-
             var champ = ChampList.FirstOrDefault(h => h.Name == myhero.ChampionName);
 
             if (champ == null) return;
             
             foreach (var slot in champ.SpellSlots)
             {
-                Player.LevelSpell(slot);
-                if (Player.CanUseSpell(slot) == SpellState.Ready && !myhero.IsDead && check(menu, "ABILITIES")) Player.CastSpell(slot, myhero);
+                if (myhero.Spellbook.GetSpell(slot).IsUpgradable) Player.LevelSpell(slot);
+
+                if (myhero.Spellbook.GetSpell(slot).IsReady) Player.CastSpell(slot, myhero.Position);          
             }
         }
-
+        
         private static void Feed()
         {
-            if (myhero.IsDead || !check(menu, "ACTIVE")) return;
-
             switch(combocheck(menu,"MODE"))
             {
                 case 0:
@@ -432,7 +410,7 @@ namespace T7_Feeder
             menu = MainMenu.AddMenu("T7 Feeder", "feederkappa");
 
             menu.AddGroupLabel("Welcome to T7 Feeder And Thank You For Using! Kappa");
-            menu.AddGroupLabel("Version 1.1 4/7/16");
+            menu.AddGroupLabel("Version 1.2 6/6/17");
             menu.AddGroupLabel("Author: Toyota7");
             menu.AddSeparator();
             menu.Add("ACTIVE", new CheckBox("Active", true));
@@ -444,7 +422,6 @@ namespace T7_Feeder
             menu.Add("AUTOBUY", new CheckBox("Auto Buy Items", true));
             menu.AddSeparator();
             menu.AddGroupLabel("Please Report Any Bugs And If You Have Any Requests Feel Free To PM Me <3");
-
         }
 
     }
