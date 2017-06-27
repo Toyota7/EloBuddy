@@ -27,31 +27,10 @@ namespace AurelionSol_Magnet
 
             Game.OnUpdate += OnUpdate;
             GameObject.OnCreate += GameObject_OnCreate;
-            //Obj_AI_Base.OnBuffGain += Obj_AI_Base_OnBuffGain;
-            //Drawing.OnDraw += Drawing_OnDraw;
-
-            //Chat.Print("LOADED");
+            
             Menu();
         }
-
-       /* private static void Drawing_OnDraw(EventArgs args)
-        {
-            if (Stars.Any())
-            {
-                foreach (var star in Stars)
-                {
-                    Drawing.DrawCircle(star.Position, star.BoundingRadius - 50, System.Drawing.Color.White);
-                }
-            }
-
-            Drawing.DrawCircle(Player.Instance.Position, RingDist, System.Drawing.Color.Purple);
-        }*/
-
-       /* private static void Obj_AI_Base_OnBuffGain(Obj_AI_Base sender, Obj_AI_BaseBuffGainEventArgs args)
-        {
-            if (sender.IsMe) Chat.Print("Buff: " + args.Buff.Name);
-        }*/
-
+        
         private static void GameObject_OnCreate(GameObject sender, EventArgs args)
         {
             if (sender.Name == WStarNames) Stars.Add(sender);
@@ -87,12 +66,6 @@ namespace AurelionSol_Magnet
             }
             else Player.IssueOrder(GameObjectOrder.MoveTo, Game.ActiveCursorPos);
         }
-
-       /* static void Movement(bool status = true)
-        {
-            Orbwalker.DisableAttacking = !status;
-            Orbwalker.DisableMovement = !status;
-        }*/
 
         static void Menu()
         {
