@@ -199,7 +199,7 @@ namespace T7_Blitzcrank
                 );
             }
 
-            AIHeroClient target = TargetSelector.GetTarget(Q.Range, DamageType.Magical, myhero.Position);
+            AIHeroClient target = GetTarget();//TargetSelector.GetTarget(Q.Range, DamageType.Magical, myhero.Position);
 
             if (target != null)
             {
@@ -248,7 +248,7 @@ namespace T7_Blitzcrank
         #region Modes
         private static void Combo()
         {
-            var target = TargetSelector.GetTarget(Q.Range, DamageType.Magical, Player.Instance.Position);
+            var target = GetTarget();//TargetSelector.GetTarget(Q.Range, DamageType.Magical, Player.Instance.Position);
 
 
             if (target != null && target.ValidTarget((int)Q.Range))
@@ -293,7 +293,7 @@ namespace T7_Blitzcrank
 
         private static void Harass()
         {
-            var target = TargetSelector.GetTarget(Q.Range, DamageType.Magical, Player.Instance.Position);
+            var target = GetTarget();//TargetSelector.GetTarget(Q.Range, DamageType.Magical, Player.Instance.Position);
 
             if (target != null && target.ValidTarget((int)Q.Range))
             {
@@ -408,7 +408,7 @@ namespace T7_Blitzcrank
 
         private static void Misc()
         {
-            var Qtarget = TargetSelector.GetTarget(Q.Range, DamageType.Magical, Player.Instance.Position);
+            var Qtarget = GetTarget();//TargetSelector.GetTarget(Q.Range, DamageType.Magical, Player.Instance.Position);
 
             if (Qtarget != null && Qtarget.ValidTarget((int)Q.Range) && key(qsett, "FORCEQ") && Q.IsReady() && check(qsett, "Q" + Qtarget.ChampionName))
             {
